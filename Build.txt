@@ -1,0 +1,21 @@
+python3 3.10.12
+
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y gcc default-libmysqlclient-dev pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+    
+apt-get update
+apt-get install -y pkg-config
+sudo apt install python3-pip
+
+
+pip install -r requirements.txt
+python3 -m flask --app main run --debug
+python3 -m flask --app hello run --host=0.0.0.0
+
+// TODO Serve The APP
+// TODO Pass the var with global vars
+docker run --name projet-goaillo-sql -p 3306:3306 -p 33060:33060 -e MYSQL_ROOT_PASSWORD=gaelkevin0109 -d mysql:latest
+docker run -it --network 172.17.0.2 --rm mysql mysql -hprojet-goaillo-sql -uroot -p
