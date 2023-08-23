@@ -3,7 +3,8 @@ import logging
 import os
 import time
 
-from flask import Blueprint, abort, request
+from flask import Blueprint, abort, redirect, request, url_for
+from flask_login import current_user, login_required
 from PIL import Image
 
 from blueprints.models import db
@@ -25,9 +26,9 @@ def serialize_post(post):
 
 
 @blueprint.get("/post")
+@login_required
 def return_post():
-    user_id = request.args.get("user_id", None)
-    posts = Post.query.filter_by(user_id=user_id).all()
+    posts = Post.query.filter_by(user_id=current_user.id).all()
     if len(posts) > 0:
         return [serialize_post(post) for post in posts]
     else:
@@ -35,10 +36,10 @@ def return_post():
 
 
 @blueprint.get("/post/<int:post_id>")
+@login_required
 def return_specific_post(post_id):
     # show the post with the given id, the id is an integer
-
-    post = Post.query.get(post_id)
+    post = Post.query.filter_by(user_id=current_user.id, id=post_id)
     if post is not None:
         return serialize_post(post)
     else:
@@ -46,6 +47,7 @@ def return_specific_post(post_id):
 
 
 @blueprint.post("/post")
+@login_required
 def create_post():
     post = Post(
         name=request.form["name"],
@@ -55,7 +57,7 @@ def create_post():
             if "end_date" in request.form
             else None
         ),
-        user_id=User.query.get(request.form["user_id"]).id,
+        user_id=current_user.id,
     )
 
     if "inputFile" in request.files:
@@ -68,7 +70,9 @@ def create_post():
             int(time.time()),
             os.path.splitext(filename_uploaded)[1],
         )
-        tmp_path = os.path.join(Config.uploadFolder, filename_tmp)
+        tmp_path = os.path.join(Config.TMP_FOLDER, filename_tmp)
+        print(Config.TMP_FOLDER)
+        print(tmp_path)
         file.save(tmp_path)
 
         try:
@@ -79,13 +83,17 @@ def create_post():
             resized_name = "compressed_image_{}{}".format(
                 int(time.time()), os.path.splitext(filename_uploaded)[1]
             )
-            resized_image_path = os.path.join(Config.filesFolder, resized_name)
+            resized_image_path = os.path.join(Config.FILES_FOLDER, resized_name)
             resized_image.save(resized_image_path, optimize=True, quality=50)
 
-            db.session.add(
-                PostImageFile(name=filename_uploaded, image_path=resized_image_path)
+            post_image = PostImageFile(
+                name=filename_uploaded, image_path=resized_image_path
             )
-            post.image_path = resized_image_path
+            db.session.add(post_image)
+            db.session.commit()
+            post.image_path = url_for(
+                "images.return_post_image", post_image_id=post_image.id
+            )
 
             # Remove tmp files
             os.remove(tmp_path)

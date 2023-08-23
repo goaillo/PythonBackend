@@ -15,5 +15,7 @@ class Config:
         os.environ.get("DATABASE_NAME"),
     )
 
-    uploadFolder = os.path.join(basedir, "tmp")
-    filesFolder = os.path.join(basedir, "files")
+    SECRET_KEY = os.environ.get("FLASK_SECRET_KEY")
+
+    TMP_FOLDER = os.path.join(basedir, "tmp")
+    FILES_FOLDER = os.path.join(basedir, "files")
