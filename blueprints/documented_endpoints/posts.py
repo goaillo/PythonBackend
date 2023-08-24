@@ -22,6 +22,7 @@ def serialize_post(post):
         "post_name": post.name,
         "start_date": post.start_date,
         "end_date": post.end_date,
+        "image_path": post.image_path,
     }
 
 
@@ -38,7 +39,7 @@ def return_post():
 @blueprint.get("/post/<int:post_id>")
 @login_required
 def return_specific_post(post_id):
-    # show the post with the given id, the id is an integer
+    # show the post with the given id if it's the right user
     post = Post.query.filter_by(user_id=current_user.id, id=post_id)
     if post is not None:
         return serialize_post(post)
@@ -71,8 +72,6 @@ def create_post():
             os.path.splitext(filename_uploaded)[1],
         )
         tmp_path = os.path.join(Config.TMP_FOLDER, filename_tmp)
-        print(Config.TMP_FOLDER)
-        print(tmp_path)
         file.save(tmp_path)
 
         try:

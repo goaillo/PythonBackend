@@ -19,3 +19,6 @@ class Config:
 
     TMP_FOLDER = os.path.join(basedir, "tmp")
     FILES_FOLDER = os.path.join(basedir, "files")
+
+    ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL")
+    ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")

@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash
 
 from blueprints.models import db
 from blueprints.models.user import User
+from tools.wrapper import isAdmin
 
 blueprint = Blueprint("user", __name__)
 
@@ -41,8 +42,11 @@ def create_user():
 
 
 @blueprint.delete("/user/<int:user_id>")
-@login_required
+@isAdmin
 def delete_user(user_id):
-    db.session.execute(delete(User).where(User.id == user_id))
+    db.session.execute(
+        delete(User).where(User.is_admin == False).where(User.id == user_id)
+    )
     db.session.commit()
-    return "Deleted"
+
+    return {}

@@ -4,6 +4,7 @@ from io import BytesIO
 from flask import Flask, send_file
 from flask_login import LoginManager
 from flask_swagger_ui import get_swaggerui_blueprint
+from werkzeug.security import generate_password_hash
 
 from blueprints.documented_endpoints.auth import auth as auth_endpoints
 from blueprints.documented_endpoints.images import blueprint as images_endpoints
@@ -11,6 +12,7 @@ from blueprints.documented_endpoints.posts import blueprint as posts_endpoints
 from blueprints.documented_endpoints.steps import blueprint as steps_endpoints
 from blueprints.documented_endpoints.users import blueprint as users_endpoints
 from blueprints.models import db
+from blueprints.models.user import User
 from config import Config
 
 # create the Flask app
@@ -31,9 +33,20 @@ db.init_app(app)
 
 # Create database and tables with the models in models/
 with app.app_context():
-    print("CREATE DATABASE !!!!!!!")
     db.drop_all()
     db.create_all()
+
+    # Create Root User (if not exists)
+    if len(User.query.filter_by(email=Config.ADMIN_EMAIL).all()) == 0:
+        db.session.add(
+            User(
+                email=Config.ADMIN_EMAIL,
+                username="admin",
+                password=generate_password_hash(Config.ADMIN_PASSWORD, method="scrypt"),
+                is_admin=True,
+            )
+        )
+        db.session.commit()
 
 # Create Swagger
 SWAGGER_URL = "/docs"  # URL for exposing Swagger UI (without trailing '/')
@@ -73,8 +86,6 @@ app.register_blueprint(auth_endpoints)
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 login_manager.init_app(app)
-
-from blueprints.models.user import User
 
 
 @login_manager.user_loader
