@@ -3,14 +3,13 @@ import logging
 import os
 import time
 
-from flask import Blueprint, abort, redirect, request, url_for
+from flask import Blueprint, abort, request, url_for
 from flask_login import current_user, login_required
 from PIL import Image
 
 from blueprints.models import db
-from blueprints.models.image_file import PostImageFile
+from blueprints.models.image_file import ImageFile
 from blueprints.models.post import Post
-from blueprints.models.user import User
 from config import Config
 
 blueprint = Blueprint("post", __name__)
@@ -85,14 +84,14 @@ def create_post():
             resized_image_path = os.path.join(Config.FILES_FOLDER, resized_name)
             resized_image.save(resized_image_path, optimize=True, quality=50)
 
-            post_image = PostImageFile(
-                name=filename_uploaded, image_path=resized_image_path
+            post_image = ImageFile(
+                name=filename_uploaded,
+                image_path=resized_image_path,
+                user_id=current_user.id,
             )
             db.session.add(post_image)
             db.session.commit()
-            post.image_path = url_for(
-                "images.return_post_image", post_image_id=post_image.id
-            )
+            post.image_path = url_for("images.return_image", image_id=post_image.id)
 
             # Remove tmp files
             os.remove(tmp_path)
