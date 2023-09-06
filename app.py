@@ -33,7 +33,7 @@ db.init_app(app)
 
 # Create database and tables with the models in models/
 with app.app_context():
-    db.drop_all()
+    # db.drop_all()
     db.create_all()
 
     # Create Root User (if not exists)

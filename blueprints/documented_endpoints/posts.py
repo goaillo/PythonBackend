@@ -15,12 +15,14 @@ from config import Config
 blueprint = Blueprint("post", __name__)
 
 
-def serialize_post(post):
+def deserialize_post(post):
     return {
         "post_id": post.id,
         "post_name": post.name,
-        "start_date": post.start_date,
-        "end_date": post.end_date,
+        "start_date": post.start_date.isoformat()
+        if post.start_date is not None
+        else "",
+        "end_date": post.end_date.isoformat() if post.end_date is not None else "",
         "image_path": post.image_path,
     }
 
@@ -30,7 +32,7 @@ def serialize_post(post):
 def return_post():
     posts = Post.query.filter_by(user_id=current_user.id).all()
     if len(posts) > 0:
-        return [serialize_post(post) for post in posts]
+        return [deserialize_post(post) for post in posts]
     else:
         abort(404)
 
@@ -41,7 +43,7 @@ def return_specific_post(post_id):
     # show the post with the given id if it's the right user
     post = Post.query.filter_by(user_id=current_user.id, id=post_id)
     if post is not None:
-        return serialize_post(post)
+        return deserialize_post(post)
     else:
         abort(404)
 
@@ -105,4 +107,4 @@ def create_post():
     db.session.add(post)
     db.session.commit()
 
-    return serialize_post(post)
+    return deserialize_post(post)

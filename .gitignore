@@ -3,3 +3,4 @@ __pycache__/
 Build.txt
 files/
 tmp/
+data/

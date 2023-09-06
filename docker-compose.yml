@@ -1,0 +1,37 @@
+services:
+  backend_flask:
+    container_name: flask-backend
+    image: flask-app
+    environment:
+      - ADMIN_EMAIL=ADMIN_EMAIL
+      - ADMIN_PASSWORD=ADMIN_PASSWORD
+      - DATABASE_USER=DATABASE_USER
+      - FLASK_SECRET_KEY=FLASK_SECRET_KEY
+      - DATABASE_PASSWD=DATABASE_PASSWD
+      - DATABASE_HOST=DATABASE_HOST
+      - DATABASE_PORT=DATABASE_PORT
+      - DATABASE_NAME=DATABASE_NAME
+    ports:
+      - "5000:80"
+
+  frontend_react:
+    container_name: react-frontend
+    image: react-app
+    environment:
+      - BACKEND_HOST=BACKEND_HOST
+      - BACKEND_PORT=BACKEND_PORT
+    ports:
+      - "3000:80"
+
+  mysql:
+    container_name: mysql
+    image: mysql:latest
+    environment:
+      - MYSQL_ROOT_PASSWORD=DATABASE_PASSWD
+    ports:
+      - "3306:3306"
+      - "33060:33060"
+    command: --init-file /data/application/init.sql
+    volumes:
+      - ./data/init.sql:/data/application/init.sql
+      - ./data/db:/var/lib/mysql

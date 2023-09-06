@@ -7,6 +7,7 @@ from flask import Blueprint, abort, request, url_for
 from flask_login import current_user, login_required
 from PIL import Image
 
+from blueprints.documented_endpoints.posts import deserialize_post
 from blueprints.models import db
 from blueprints.models.image_file import ImageFile
 from blueprints.models.post import Post
@@ -42,12 +43,16 @@ def return_specific_step(step_id):
 @login_required
 def return_steps_from_post(post_id):
     # Test if user can access step
-    if Post.query.filter_by(user_id=current_user.id, id=post_id).first() is None:
+    post = Post.query.filter_by(user_id=current_user.id, id=post_id).first()
+    if post is None:
         abort(400)
 
     steps = Step.query.filter_by(post_id=post_id).all()
     if len(steps) > 0:
-        return [serialize_step(step) for step in steps]
+        return {
+            "post": deserialize_post(post),
+            "steps": [serialize_step(step) for step in steps],
+        }
     else:
         abort(404)
 

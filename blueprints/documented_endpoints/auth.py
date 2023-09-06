@@ -1,8 +1,7 @@
-from flask import Blueprint, abort, redirect, request, url_for
-from flask_login import login_required, login_user, logout_user
+from flask import Blueprint, abort, request
+from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.security import check_password_hash
 
-from blueprints.models import db
 from blueprints.models.user import User
 
 auth = Blueprint("auth", __name__)
@@ -22,7 +21,6 @@ def login():
 
     login_user(user, remember=remember)
     return "Logged"
-    # return redirect(url_for('main.profile'))
 
 
 @auth.route("/logout")
