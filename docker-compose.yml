@@ -1,36 +1,49 @@
 services:
   backend_flask:
-    container_name: flask-backend
-    image: flask-app
+    container_name: backend_flask
+    image: backend_flask
+    build:
+      dockerfile: Dockerfile
     environment:
-      - ADMIN_EMAIL=ADMIN_EMAIL
-      - ADMIN_PASSWORD=ADMIN_PASSWORD
-      - DATABASE_USER=DATABASE_USER
-      - FLASK_SECRET_KEY=FLASK_SECRET_KEY
-      - DATABASE_PASSWD=DATABASE_PASSWD
-      - DATABASE_HOST=DATABASE_HOST
-      - DATABASE_PORT=DATABASE_PORT
-      - DATABASE_NAME=DATABASE_NAME
+      - ADMIN_EMAIL=$ADMIN_EMAIL
+      - ADMIN_PASSWORD=$ADMIN_PASSWORD
+      - FLASK_SECRET_KEY=$FLASK_SECRET_KEY
+      - DATABASE_USER=$DATABASE_USER
+      - DATABASE_PASSWD=$DATABASE_PASSWD
+      - DATABASE_HOST=$DATABASE_HOST
+      - DATABASE_PORT=$DATABASE_PORT
+      - DATABASE_NAME=$DATABASE_NAME
+    depends_on:
+      flaskmysql:
+        condition: service_healthy
     ports:
       - "5000:80"
 
-  frontend_react:
-    container_name: react-frontend
-    image: react-app
-    environment:
-      - BACKEND_HOST=BACKEND_HOST
-      - BACKEND_PORT=BACKEND_PORT
-    ports:
-      - "3000:80"
+  # frontend_react:
+  #   container_name: react-frontend
+  #   image: react-app
+  #   environment:
+  #     - BACKEND_HOST=BACKEND_HOST
+  #     - BACKEND_PORT=BACKEND_PORT
+  #   ports:
+  #     - "3000:80"
 
-  mysql:
-    container_name: mysql
+  flaskmysql:
+    container_name: flaskmysql
     image: mysql:latest
     environment:
-      - MYSQL_ROOT_PASSWORD=DATABASE_PASSWD
+      MYSQL_ROOT_USER: $DATABASE_USER
+      MYSQL_ROOT_PASSWORD: $DATABASE_PASSWD
+      MYSQL_DATABASE: $DATABASE_NAME
+      MYSQL_USER: testuser
+      MYSQL_PASSWORD: test
     ports:
       - "3306:3306"
       - "33060:33060"
+    healthcheck:
+      test: ["CMD", 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-p$$MYSQL_ROOT_PASSWORD']
+      timeout: 2s
+      retries: 30
     command: --init-file /data/application/init.sql
     volumes:
       - ./data/init.sql:/data/application/init.sql

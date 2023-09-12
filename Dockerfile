@@ -8,6 +8,7 @@ RUN apt-get update \
     && apt-get install --no-install-recommends -y nginx \
     && apt-get install --no-install-recommends -y python3-dev \
     && apt-get install --no-install-recommends -y build-essential \
+    && apt-get install --no-install-recommends -y uwsgi-plugin-python3 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt requirements.txt
